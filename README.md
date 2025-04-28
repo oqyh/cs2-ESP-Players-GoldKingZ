@@ -50,7 +50,7 @@ Show Glow/Esp To Players With Flags
 | `GlowColor_T` | Glow color for Terrorists | Hex code (e.g. `#f3005d`) | - |
 | `DefaultToggleGlow` | Enable glow by default for new players? | `true`-Yes<br>`false`-No | - |
 | `Glow_CommandsInGame` | Commands to toggle ESP on/off | Comma-separated commands<br>(e.g. `!glow,!esp,css_esp`) | `""` = Disabled |
-| `Glow_Flags` | Access control using SteamID, Flag, or Group |**Example:**<br>SteamID: x <br> Flag: @x <br> Group: #x |`Glow_CommandsInGame` |
+| `Glow_Flags` | Access control | Check Config For Examples | `Glow_CommandsInGame` |
 | `Cookies_Enable` | Save player data locally with cookies? | `true`-Yes<br>`false`-No | - |
 | `Cookies_AutoRemovePlayerOlderThanXDays` | Auto-remove inactive players after X days (cookies) | Number (`0` = never) | `Cookies_Enable=true` |
 | `MySql_Enable` | Save player data to MySQL database? | `true`-Yes<br>`false`-No | - |
