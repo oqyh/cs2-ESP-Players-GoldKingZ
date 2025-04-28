@@ -37,7 +37,7 @@ Show Glow/Esp To Players With Flags
 
 
 <details open>
-<summary><b>ESP Config</b> (Click to expand 🔽)</summary>
+<summary><b>Main Config</b> (Click to expand 🔽)</summary>
 
 | Property | Description | Values | Required |
 |----------|-------------|--------|----------|
