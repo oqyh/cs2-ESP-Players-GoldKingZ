@@ -1,0 +1,5 @@
+{
+	"PrintChatToPlayer.Toggle.Not.Allowed": "{lime}[ESP Players] {darkred}你没有权限访问此功能",
+	"PrintChatToPlayer.Toggle.Enabled": "{lime}[ESP Players] {grey}ESP玩家功能已 {lime}启用",
+	"PrintChatToPlayer.Toggle.Disabled": "{lime}[ESP Players] {grey}ESP玩家功能已 {darkred}禁用"
+}
