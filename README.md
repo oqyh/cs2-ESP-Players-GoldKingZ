@@ -70,6 +70,8 @@ SteamID: 76561198206086993,76561198974936845 | Flag: @css/vips,@css/admins | Gro
 
 ```
 
+</details>
+
 <details>
 <summary><b>Utilities Config</b> (Click to expand 🔽)</summary>
 
