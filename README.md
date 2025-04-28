@@ -40,29 +40,35 @@ Show Glow/Esp To Players With Flags
 <summary><b>Main Config</b> (Click to expand 🔽)</summary>
 
 | Property | Description | Values | Required |
-|----------|-------------|--------|----------|
-| `DisableOnWarmUp` | Disable ESP during warmup? | `true`-Yes<br>`false`-No | - |
-| `UserTimerCheckPlayersGlow` | Use timer to check player glow (useful for custom models)? | `true`-Yes<br>`false`-No | - |
-| `ShowOnlyEnemyTeam` | Show ESP only for enemies? | `true`-Yes<br>`false`-No (show all players) | - |
-| `GlowType` | Glow only when crosshair near player? | `true`-Yes<br>`false`-Always visible | - |
+|:---------|:------------|:-------|:---------|
+| `DisableOnWarmUp` | Disable ESP during warmup? | `true` = Yes, `false` = No | - |
+| `UserTimerCheckPlayersGlow` | Use timer to check player glow (useful for custom models)? | `true` = Yes, `false` = No | - |
+| `ShowOnlyEnemyTeam` | Show ESP only for enemies? | `true` = Only enemies, `false` = All players | - |
+| `GlowType` | Glow only when crosshair near player? | `true` = Near, `false` = Always visible | - |
 | `GlowRange` | Max distance to show player glow | Number (e.g. `5000`) | - |
-| `GlowColor_CT` | Glow color for Counter-Terrorists | Hex code (e.g. `#00beff`) | - |
-| `GlowColor_T` | Glow color for Terrorists | Hex code (e.g. `#f3005d`) | - |
-| `DefaultToggleGlow` | Enable glow by default for new players? | `true`-Yes<br>`false`-No | - |
-| `Glow_CommandsInGame` | Commands to toggle ESP on/off | Comma-separated commands<br>(e.g. `!glow,!esp,css_esp`) | `""` = Disabled |
-| `Glow_Flags` | Access control | Check Config For Examples | `Glow_CommandsInGame` |
-| `Cookies_Enable` | Save player data locally with cookies? | `true`-Yes<br>`false`-No | - |
-| `Cookies_AutoRemovePlayerOlderThanXDays` | Auto-remove inactive players after X days (cookies) | Number (`0` = never) | `Cookies_Enable=true` |
-| `MySql_Enable` | Save player data to MySQL database? | `true`-Yes<br>`false`-No | - |
+| `GlowColor_CT` | Glow color for Counter-Terrorists | Hex color (e.g. `#00beff`) | - |
+| `GlowColor_T` | Glow color for Terrorists | Hex color (e.g. `#f3005d`) | - |
+| `DefaultToggleGlow` | Enable glow by default for new players? | `true` = Yes, `false` = No | - |
+| `Glow_CommandsInGame` | Commands to toggle ESP on/off | Example: `!esp,!glow`, `""` = Disabled | `""` = Disabled |
+| `Glow_Flags` | Access control (SteamID / Flag / Group) | See example below | `Glow_CommandsInGame` |
+| `Cookies_Enable` | Save player data locally with cookies? | `true` = Yes, `false` = No | - |
+| `Cookies_AutoRemovePlayerOlderThanXDays` | Auto-delete inactive cookies after X days | Number (`0` = Never) | `Cookies_Enable=true` |
+| `MySql_Enable` | Save player data to MySQL database? | `true` = Yes, `false` = No | - |
 | `MySql_Host` | MySQL server hostname | Text (e.g. `localhost`) | `MySql_Enable=true` |
 | `MySql_Database` | MySQL database name | Text | `MySql_Enable=true` |
 | `MySql_Username` | MySQL username | Text | `MySql_Enable=true` |
 | `MySql_Password` | MySQL password | Text | `MySql_Enable=true` |
 | `MySql_Port` | MySQL port | Number (e.g. `3306`) | `MySql_Enable=true` |
-| `MySql_AutoRemovePlayerOlderThanXDays` | Auto-remove inactive players after X days (MySQL) | Number (`0` = never) | `MySql_Enable=true` |
+| `MySql_AutoRemovePlayerOlderThanXDays` | Auto-remove inactive MySQL entries after X days | Number (`0` = Never) | `MySql_Enable=true` |
 
-</details>
+---
 
+### 🔹 `Glow_Flags` Example
+
+```text
+SteamID: 76561198206086993,76561198974936845 | Flag: @css/vips,@css/admins | Group: #css/vips,#css/admins
+
+```
 
 <details>
 <summary><b>Utilities Config</b> (Click to expand 🔽)</summary>
