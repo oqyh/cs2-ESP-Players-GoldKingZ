@@ -18,12 +18,12 @@ namespace ESP_Players;
 public class MainPlugin : BasePlugin
 {
     public override string ModuleName => "Show Glow/Esp To Players With Flags";
-    public override string ModuleVersion => "1.0.0";
+    public override string ModuleVersion => "1.0.1";
     public override string ModuleAuthor => "Gold KingZ";
     public override string ModuleDescription => "https://github.com/oqyh";
     public static MainPlugin Instance { get; set; } = new();
     public Globals g_Main = new();
-    private readonly PlayerChat _PlayerChat = new();
+    private readonly SayText2 OnSayText2 = new();
 
     public override void Load(bool hotReload)
     {
@@ -37,42 +37,52 @@ public class MainPlugin : BasePlugin
         RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
 
         RegisterListener<Listeners.CheckTransmit>(OnCheckTransmit);
+        RegisterListener<Listeners.OnMapStart>(OnMapStart);
         RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
 
-        AddCommandListener("say", OnPlayerChat, HookMode.Post);
-        AddCommandListener("say_team", OnPlayerChatTeam, HookMode.Post);
+        HookUserMessage(118, OnUserMessage_OnSayText2, HookMode.Pre);
 
-        string[] Glow_CommandsInGames = Configs.GetConfigData().Glow_CommandsInGame.Split(',');
-        foreach (var cmd in Glow_CommandsInGames.Where(cmd => cmd.StartsWith("css_", StringComparison.OrdinalIgnoreCase)))
+        AddCommandListener("say", OnPlayerSay, HookMode.Post);
+        AddCommandListener("say_team", OnPlayerSay_Team, HookMode.Post);
+
+        Helper.RegisterCssCommands(Configs.GetConfigData().Toggle_Glow_CommandsInGame.GetCommands(), "Commands To Enable/Disable Glow", OnSayText2.CommandsAction_ESP);
+
+        
+
+        if (hotReload)
         {
-            AddCommand(cmd, "full update test", CommandsAction);
+            if (Configs.GetConfigData().MySql_Enable)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await MySqlDataManager.CreateTableIfNotExistsAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Helper.DebugMessage($"hotReload error: {ex.Message}");
+                    }
+                });
+            }
         }
     }
 
-
-    public void CommandsAction(CCSPlayerController? player, CommandInfo info)
+    public void OnMapStart(string mapname)
     {
-        if (!player.IsValid()) return;
-
-        if (!string.IsNullOrEmpty(Configs.GetConfigData().Glow_Flags) && !Helper.IsPlayerInGroupPermission(player, Configs.GetConfigData().Glow_Flags))
+        if (Configs.GetConfigData().MySql_Enable)
         {
-            Helper.AdvancedPlayerPrintToChat(player, info, Localizer["PrintChatToPlayer.Toggle.Not.Allowed"]);
-        }
-        else
-        {
-            if (g_Main.Player_Data.ContainsKey(player))
+            _ = Task.Run(async () =>
             {
-                g_Main.Player_Data[player].Toggle_ESP = g_Main.Player_Data[player].Toggle_ESP.ToggleOnOff();
-
-                if (g_Main.Player_Data[player].Toggle_ESP == -1)
-                {
-                    Helper.AdvancedPlayerPrintToChat(player, info, Localizer["PrintChatToPlayer.Toggle.Enabled"]);
+                try
+                {                        
+                    await MySqlDataManager.CreateTableIfNotExistsAsync();
                 }
-                else if (g_Main.Player_Data[player].Toggle_ESP == -2)
+                catch (Exception ex)
                 {
-                    Helper.AdvancedPlayerPrintToChat(player, info, Localizer["PrintChatToPlayer.Toggle.Disabled"]);
+                    Helper.DebugMessage($"OnMapStart error: {ex.Message}");
                 }
-            }
+            });
         }
     }
 
@@ -80,9 +90,10 @@ public class MainPlugin : BasePlugin
     {
         foreach ((CCheckTransmitInfo info, CCSPlayerController? player) in infoList)
         {
-            if (!player.IsValid(true)) continue;
+            if (!player.IsValid(true, Configs.GetConfigData().DisableGlowOnGOTV)) continue;
 
-            if (!g_Main.Player_Data.TryGetValue(player, out var handle)) continue;
+            Globals.PlayerDataClass? handle = null;
+            if (!player.IsHLTV && !g_Main.Player_Data.TryGetValue(player, out handle)) continue;
 
             foreach (var getplayers in g_Main.Player_Data.Values)
             {
@@ -95,10 +106,28 @@ public class MainPlugin : BasePlugin
                 var ModelRelay = getplayers.ModelRelay;
 
                 bool shouldRemoveGlow = false;
-
-                if (Configs.GetConfigData().ShowOnlyEnemyTeam)
+                if (Configs.GetConfigData().DisableGlowOnGOTV && player.IsHLTV)
                 {
-                    
+                    shouldRemoveGlow = true;
+                }
+                
+                if (Configs.GetConfigData().Show_ESP_For == 1)
+                {
+                    if (player.IsAlive())
+                    {
+                        shouldRemoveGlow = true;
+                    }
+                }
+                else if (Configs.GetConfigData().Show_ESP_For == 2)
+                {
+                    if (player.TeamNum != (int)CsTeam.Spectator)
+                    {
+                        shouldRemoveGlow = true;
+                    }
+                }
+                
+                if (Configs.GetConfigData().ShowOnlyEnemyTeam && (Configs.GetConfigData().Show_ESP_For == 0 || Configs.GetConfigData().Show_ESP_For == 1))
+                {
                     if (player.TeamNum == targetPlayer.TeamNum)
                     {
                         shouldRemoveGlow = true;
@@ -107,7 +136,7 @@ public class MainPlugin : BasePlugin
 
                 if (ModelGlow != null && ModelGlow.IsValid)
                 {
-                    if (shouldRemoveGlow || handle.Toggle_ESP == 2 || handle.Toggle_ESP == -2)
+                    if (shouldRemoveGlow || handle != null && handle.Toggle_ESP == 2 || handle != null && handle.Toggle_ESP == -2)
                     {
                         info.TransmitEntities.Remove(ModelGlow);
                     }
@@ -115,34 +144,65 @@ public class MainPlugin : BasePlugin
 
                 if (ModelRelay != null && ModelRelay.IsValid)
                 {
-                    if (shouldRemoveGlow || handle.Toggle_ESP == 2 || handle.Toggle_ESP == -2)
+                    if (shouldRemoveGlow || handle != null && handle.Toggle_ESP == 2 || handle != null && handle.Toggle_ESP == -2)
                     {
                         info.TransmitEntities.Remove(ModelRelay);
                     }
                 }
-                
             }
         }
     }
 
-    private HookResult OnPlayerChat(CCSPlayerController? player, CommandInfo info)
-	{
-        if (!player.IsValid())return HookResult.Continue;
+    private HookResult OnPlayerSay(CCSPlayerController? player, CommandInfo info)
+    {
+        if (!player.IsValid()) return HookResult.Continue;
+        Helper.CheckPlayerInGlobals(player);
 
-        _PlayerChat.OnPlayerChat(player, info, false);
+        var eventmessage = info.ArgString;
+        eventmessage = eventmessage.Trim().Trim('"').Trim();
 
-        return HookResult.Continue;
-    }
-    private HookResult OnPlayerChatTeam(CCSPlayerController? player, CommandInfo info)
-	{
-        if (!player.IsValid())return HookResult.Continue;
+        if (string.IsNullOrWhiteSpace(eventmessage)) return HookResult.Continue;
 
-        _PlayerChat.OnPlayerChat(player, info, true);
+        OnSayText2.OnSayText2(null, player, eventmessage, false);
 
         return HookResult.Continue;
     }
+    private HookResult OnPlayerSay_Team(CCSPlayerController? player, CommandInfo info)
+    {
+        if (!player.IsValid()) return HookResult.Continue;
+        Helper.CheckPlayerInGlobals(player);
 
+        var eventmessage = info.ArgString;
+        eventmessage = eventmessage.Trim().Trim('"').Trim();
     
+        if (string.IsNullOrWhiteSpace(eventmessage)) return HookResult.Continue;
+
+        OnSayText2.OnSayText2(null, player, eventmessage, true);
+
+        return HookResult.Continue;
+    }
+    private HookResult OnUserMessage_OnSayText2(CounterStrikeSharp.API.Modules.UserMessages.UserMessage um)
+    {
+        var entityindex = um.ReadInt("entityindex");
+        var player = Utilities.GetPlayerFromIndex(entityindex);
+        if (!player.IsValid()) return HookResult.Continue;
+        Helper.CheckPlayerInGlobals(player);
+
+        var messagename = um.ReadString("messagename");
+        var message = um.ReadString("param2");
+        message = message.Trim();
+        if (string.IsNullOrWhiteSpace(message)) return HookResult.Continue;
+
+        bool TeamChat = false;
+        if (messagename.Equals("Cstrike_Chat_CT") || messagename.Equals("Cstrike_Chat_CT_Loc") || messagename.Equals("Cstrike_Chat_T") || messagename.Equals("Cstrike_Chat_T_Loc")
+        || messagename.Equals("Cstrike_Chat_Spec") || messagename.Equals("Cstrike_Chat_CT_Dead") || messagename.Equals("Cstrike_Chat_T_Dead"))
+        {
+            TeamChat = true;
+        }
+
+        OnSayText2.OnSayText2(um, player, message, TeamChat);
+        return HookResult.Continue;
+    }
 
     public HookResult OnEventBotTakeover(EventBotTakeover @event, GameEventInfo info)
     {
@@ -219,8 +279,6 @@ public class MainPlugin : BasePlugin
         {
             Helper.SetGlowPlayer(player);
         }
-        
-        
 
         return HookResult.Continue;
     }
@@ -295,8 +353,6 @@ public class MainPlugin : BasePlugin
             {
                 ModelRelay.Remove();
             }
-
-            g_Main.Player_Data.Remove(player);
         }
 
         return HookResult.Continue;
@@ -310,17 +366,13 @@ public class MainPlugin : BasePlugin
         }
         catch (Exception ex)
         {
-            Helper.DebugMessage($"Map end cleanup error: {ex.Message}");
+            Helper.DebugMessage($"OnMapEnd error: {ex.Message}");
         }
     }
 
     public override void Unload(bool hotReload)
     {
-        string[] Glow_CommandsInGames = Configs.GetConfigData().Glow_CommandsInGame.Split(',');
-        foreach (var cmd in Glow_CommandsInGames.Where(cmd => cmd.StartsWith("css_", StringComparison.OrdinalIgnoreCase)))
-        {
-            RemoveCommand(cmd, CommandsAction);
-        }
+        Helper.RemoveCssCommands(Configs.GetConfigData().Toggle_Glow_CommandsInGame.GetCommands(), OnSayText2.CommandsAction_ESP);
 
         try
         {
@@ -332,13 +384,13 @@ public class MainPlugin : BasePlugin
         }
     }
 
-    
+
 
     /* [ConsoleCommand("css_test", "test")]
     [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
     public void test(CCSPlayerController? player, CommandInfo commandInfo)
     {
-        if (!player.IsValid())return;
+        if (!player.IsValid()) return;
     } */
     
 }
