@@ -2,7 +2,7 @@
 
 <a href="https://discord.com/invite/U7AuQhu"><img src="https://discord.com/api/guilds/651838917687115806/widget.png?style=banner2"></a>
 
-# [CS2] ESP-Players-GoldKingZ (1.0.1)
+# [CS2] ESP-Players-GoldKingZ (1.0.2)
 
 Show Glow/Esp To Players With Flags
 
@@ -12,14 +12,14 @@ Show Glow/Esp To Players With Flags
 ---
 
 ## 📦 Dependencies
-[![Metamod:Source](https://img.shields.io/badge/Metamod:Source-2d2d2d?logo=sourceengine)](https://www.sourcemm.net)
 
-[![CounterStrikeSharp](https://img.shields.io/badge/CounterStrikeSharp-83358F)](https://github.com/roflmuffin/CounterStrikeSharp)
+[![Metamod:Source](https://img.shields.io/badge/Metamod:Source-REQUIRED_TO_DOWNLOAD-red?logo=sourceengine&labelColor=2d2d2d)](https://www.sourcemm.net)
 
-[![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)](https://dev.mysql.com/doc/connector-net/en/) [Included in zip]
+[![CounterStrikeSharp](https://img.shields.io/badge/CounterStrikeSharp-REQUIRED_TO_DOWNLOAD-red?logo=github&labelColor=83358F)](https://github.com/roflmuffin/CounterStrikeSharp)
 
-[![JSON](https://img.shields.io/badge/JSON-000000?logo=json)](https://www.newtonsoft.com/json) [Included in zip]
+[![ClientPrefs-GoldKingZ](https://img.shields.io/badge/ClientPrefs--GoldKingZ-REQUIRED_TO_DOWNLOAD-red?logo=github&labelColor=FFD700)](https://github.com/oqyh/cs2-ClientPrefs-GoldKingZ/releases)
 
+[![JSON](https://img.shields.io/badge/JSON-INCLUDED_IN_ZIP-brightgreen?logo=json&labelColor=000000)](https://www.newtonsoft.com/json)
 
 ---
 
@@ -33,54 +33,71 @@ Show Glow/Esp To Players With Flags
 
 ---
 
-## 🛠️ `config.json`
 
+## ⚙️ Configuration
 
+> [!IMPORTANT]
+> **Main Configuration**  
+> `../ESP-Players-GoldKingZ/config/config.json`  
+
+## 🛠️ `config/config.json`
 <details open>
 <summary><b>Main Config</b> (Click to expand 🔽)</summary>
 
 | Property | Description | Values | Required |
-|:---------|:------------|:-------|:---------|
-| `DisableOnWarmUp` | Disable ESP On WarmUp? | `true` = Yes, `false` = No | - |
-| `DisableGlowOnGOTV` | Disable Glow In Demo GOTV/HLTV? | `true` = Yes, `false` = No | - |
-| `UserTimerCheckPlayersGlow` | Use Timer To Check Player Glow (Useful If Use Custom Models)? | `true` = Yes, `false` = No | - |
-| `Show_ESP_For` | Show ESP For? | `0`-Any<br>`1`-Dead Players Only<br>`2`-Spec Players Only | `Discord_WebHook` |  
-| `ShowOnlyEnemyTeam` | Show ESP Only Enemy Team? | `true` = Only enemies, `false` = All players | `Show_ESP_For` = 0/1 |
-| `GlowType` | Glow Only When Crosshair Near To Player Glow? | `true` = Near, `false` = Always visible | - |
-| `GlowRange` | Max Range To Show Player Glow | Number (e.g. `5000`) | - |
-| `Glow_Color_CT` | Glow color for Counter-Terrorists | (Red, Green, Blue, Alpha) color (e.g. `0, 190, 255, 255`) | - |
-| `Glow_Color_T` | Glow color for Terrorists | (Red, Green, Blue, Alpha) color (e.g. `243, 0, 93, 255`) | - |
-| `DefaultToggleGlow` | Default Glow To New Players? | `true` = Yes, `false` = No | - |
-| `Toggle_Glow_CommandsInGame` | Commands To Enable/Disable ESP | e.g. `!esp,!glow`<br>`""` = Disable | - |
-| `Toggle_Glow_Flags` | Access control (SteamID / Flag / Group) | See example below | `Toggle_Glow_CommandsInGame` ≠ `""` |
-| `Toggle_Glow_Hide` | Hide Chat After Toggle? | `0`-No<br>`1`-Yes, But Only After Toggle Successfully<br>`2`-Yes, Hide All The Time | `Toggle_Glow_CommandsInGame` ≠ `""` |
-| `Cookies_Enable` | Save player data locally with cookies? | `true` = Yes, `false` = No | - |
-| `Cookies_AutoRemovePlayerOlderThanXDays` | Auto-delete inactive cookies after X days | Number (`0` = Never) | `Cookies_Enable=true` |
-| `MySql_Enable` | Save player data to MySQL database? | `true` = Yes, `false` = No | - |
-| `MySql_Host` | MySQL server hostname | Text (e.g. `localhost`) | `MySql_Enable=true` |
-| `MySql_Database` | MySQL database name | Text | `MySql_Enable=true` |
-| `MySql_Username` | MySQL username | Text | `MySql_Enable=true` |
-| `MySql_Password` | MySQL password | Text | `MySql_Enable=true` |
-| `MySql_Port` | MySQL port | Number (e.g. `3306`) | `MySql_Enable=true` |
-| `MySql_AutoRemovePlayerOlderThanXDays` | Auto-remove inactive MySQL entries after X days | Number (`0` = Never) | `MySql_Enable=true` |
-
----
-
-### 🔹 `Toggle_Glow_Flags` Example
-
-```text
-SteamID: 76561198206086993,76561198974936845 | Flag: @css/vips,@css/admins | Group: #css/vips,#css/admins
-
-```
+|----------|-------------|--------|----------|
+| `Reload_Plugin_CommandsInGame` | Commands to reload the plugin (console/chat by `!` or `css_`) | `Console_Commands:` `Chat_Commands:`<br>Both empty = Disable | - |
+| `Reload_Plugin_Flags` | Restrict reload command to SteamIDs, Flags, Groups | `SteamIDs:` `Flags:` `Groups:`<br>All empty = Allow everyone | `Reload_Plugin_CommandsInGame` |
+| `Reload_Plugin_Hide` | Hide chat after executing reload command | `0`-No<br>`1`-Only after successful toggle<br>`2`-Hide all the time | `Reload_Plugin_Flags` |
 
 </details>
+<details>
+<summary><b>Glow Config</b> (Click to expand 🔽)</summary>
 
+| Property | Description | Values | Required |
+|----------|-------------|--------|----------|
+| `Toggle_ESP_CommandsInGame` | Commands to toggle ESP on/off (console/chat by `!` or `css_`) | `Console_Commands:` `Chat_Commands:`<br>Both empty = Disable | - |
+| `Toggle_ESP_Flags` | Restrict toggle command to SteamIDs, Flags, Groups | `SteamIDs:` `Flags:` `Groups:`<br>All empty = Allow everyone | `Toggle_ESP_CommandsInGame` |
+| `Toggle_ESP_Hide` | Hide chat after executing toggle command | `0`-No<br>`1`-Only after successful toggle<br>`2`-Hide all the time | `Toggle_ESP_Flags` |
+| `DefaultToggleGlow` | Default glow toggle for new players | `true`-On<br>`false`-Off (must toggle manually) | - |
+| `DisableOnWarmUp` | Disable ESP during warmup | `true`/`false` | - |
+| `DisableGlowOnGOTV` | Disable glow in demo GOTV/HLTV | `true`/`false` | - |
+| `Show_ESP_For` | Who can see ESP | `0`-Any<br>`1`-Dead players only<br>`2`-Spec players only | - |
+| `ShowOnlyEnemyTeam` | Show ESP only for enemy team | `true`-Yes (disable teammate ESP)<br>`false`-No (show all) | `Show_ESP_For=0 or 1` |
+| `GlowType` | Glow only when crosshair is near a player | `true`-Yes<br>`false`-No (show all the time) | - |
+| `GlowRange` | Max range to show player glow | e.g. `5000` | - |
+| `Glow_Color_CT` | Glow color for CT players (R, G, B, A) | e.g. `0, 190, 255, 255`<br>[Color Picker](https://rgbacolorpicker.com/) | - |
+| `Glow_Color_T` | Glow color for T players (R, G, B, A) | e.g. `243, 0, 93, 255`<br>[Color Picker](https://rgbacolorpicker.com/) | - |
+
+</details>
+<details>
+<summary><b>Locally Config</b> (ClientPrefs-GoldKingZ API) (Click to expand 🔽)</summary>
+
+| Property | Description | Values | Required |
+|----------|-------------|--------|----------|
+| `Cookies_Enable` | Save player data locally by cookies | `0`-No<br>`1`-On disconnect (Warning Performance)<br>`2`-On map change (Recommended) | - |
+| `Cookies_AutoRemoveInactivePlayersOlderThanDays` | Auto delete inactive players (days) | `0`-Don't delete<br>`1`+ days | `Cookies_Enable=1 or 2` |
+
+</details>
+<details>
+<summary><b>MySql Config</b> (ClientPrefs-GoldKingZ API) (Click to expand 🔽)</summary>
+
+| Property | Description | Values | Required |
+|----------|-------------|--------|----------|
+| `MySql_Enable` | Save player data to MySQL | `0`-No<br>`1`-On disconnect (Warning Performance)<br>`2`-On map change (Recommended) | - |
+| `MySql_ConnectionTimeout` | Connection timeout (seconds) | e.g. `30` | `MySql_Enable=1 or 2` |
+| `MySql_RetryAttempts` | Retry attempts on connection failure | e.g. `3` | `MySql_Enable=1 or 2` |
+| `MySql_RetryDelay` | Delay between retries (seconds) | e.g. `2` | `MySql_Enable=1 or 2` |
+| `MySql_Servers` | MySQL server configurations (add as many as you like) | Array of server objects<br>(`Server`, `Port`, `Database`, `Username`, `Password`) | `MySql_Enable=1 or 2` |
+| `MySql_AutoRemoveInactivePlayersOlderThanDays` | Auto delete inactive players (days) | `0`-Don't delete<br>`1`+ days | `MySql_Enable=1 or 2` |
+
+</details>
 <details>
 <summary><b>Utilities Config</b> (Click to expand 🔽)</summary>
 
-| Property | Description | Values | Required |  
+| Property | Description | Values | Required |
 |----------|-------------|--------|----------|
-| `EnableDebug` | Debug Mode | `true`-Enable<br>`false`-Disable | - |
+| `EnableDebug` | Enable debug in server console (helps debug issues) | `true`/`false` | - |
 
 </details>
 
@@ -91,6 +108,22 @@ SteamID: 76561198206086993,76561198974936845 | Flag: @css/vips,@css/admins | Gro
 
 <details>
 <summary><b>📋 View Version History</b> (Click to expand 🔽)</summary>
+
+### [1.0.2]
+- Upgraded to .NET 10
+- CleanUp + Optimization
+- Fix DisableGlowOnGOTV Bug On Demo
+- Remove Debug From Release For Optimization
+- Remove UserTimerCheckPlayersGlow Its Default Using Refresh Timer
+- Added API ClientPrefs-GoldKingZ 1.0.3 Into Plugin
+- Added Reload_Plugin_CommandsInGame
+- Added Reload_Plugin_Flags
+- Added Reload_Plugin_Hide
+- Added ConVar `gkz_esp` To Enable/Disable Plugin Can Execute Only By Server Side
+- Rename Toggle_Glow_CommandsInGame To Toggle_ESP_CommandsInGame
+- Rename Toggle_Glow_Flags To Toggle_ESP_Flags
+- Rename Toggle_Glow_Hide To Toggle_ESP_Hide
+- Rename SQL + MySQL Config By Using ClientPrefs-GoldKingZ API
 
 ### [1.0.1]
 - Includ Missing Config Folder In Repository
