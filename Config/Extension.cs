@@ -2,45 +2,50 @@ using CounterStrikeSharp.API.Core;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Drawing;
+using CounterStrikeSharp.API;
 
 
-namespace ESP_Players;
+namespace ESP_Players_GoldKingZ;
 
 public static class Extension
 {
-    public static bool IsValid([NotNullWhen(true)] this CCSPlayerController? player, bool IncludeBots = false, bool IncludeHLTV = false)
-    {
-        if (player == null || !player.IsValid)
-            return false;
-
-        if (!IncludeBots && player.IsBot)
-            return false;
-
-        if (!IncludeHLTV && player.IsHLTV)
-            return false;
-
-        return true;
-    }
-
     public static bool IsAlive(this CCSPlayerController? player)
     {
-        if (player == null || !player.IsValid
-        || player.PlayerPawn == null || !player.PlayerPawn.IsValid
-        || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return false;
+        if (player == null || !player.IsValid) return false;
 
-        return player.PlayerPawn.Value.LifeState == (byte)LifeState_t.LIFE_ALIVE;
+        var pawn = player.PlayerPawn.Value;
+        if (pawn == null || !pawn.IsValid) return false;
+
+        return pawn.LifeState == (byte)LifeState_t.LIFE_ALIVE;
     }
 
-    public static int ToggleOnOff(this int value)
+    public static CCSPlayerController? CheckPlayerController(this CCSPlayerController player)
     {
-        return value switch
+        if (player == null || !player.IsValid) return null;
+        return Utilities.GetPlayers().FirstOrDefault(p => p != null && p.IsValid && p.PlayerPawn?.Value?.Index == player.Pawn.Index);
+    }
+
+    public static bool HasValidPermissionData(this string? groups)
+    {
+        if (string.IsNullOrWhiteSpace(groups)) return false;
+
+        var segments = groups.Split('|', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var seg in segments)
         {
-            1 => -2,
-            2 => -1,
-            -1 => -2,
-            -2 => -1,
-            _ => value
-        };
+            var trimmed = seg.Trim();
+            if (string.IsNullOrEmpty(trimmed))
+                continue;
+
+            int colonIndex = trimmed.IndexOf(':');
+            if (colonIndex == -1 || colonIndex == 0)
+                continue;
+
+            string values = trimmed.Substring(colonIndex + 1).Trim();
+            if (!string.IsNullOrEmpty(values))
+                return true;
+        }
+
+        return false;
     }
 
     private const ulong Steam64Offset = 76561197960265728UL;
@@ -56,23 +61,47 @@ public static class Extension
         return (steam2, steam3, steam32, steam64);
     }
 
-    public static string[] GetCommands(this string csv, bool toChat = false)
+    public static string[]? ConvertCommands(this string input, bool EventPlayerChat = false)
     {
-        return csv
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(cmd => cmd.Trim())
-            .Select(cmd =>
-                toChat
-                    ? cmd.StartsWith("css_")
-                        ? "!" + cmd[4..]
-                        : cmd
-                    : cmd.StartsWith("!")
-                        ? "css_" + cmd[1..]
-                        : cmd
-            )
-            .Select(cmd => cmd.ToLowerInvariant())
-            .Distinct()
-            .ToArray();
+        var parts = input.Split('|', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Split(':', 2))
+            .ToDictionary(
+                p => p[0].Trim(),
+                p => p.Length > 1
+                    ? p[1].Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(c => c.Trim())
+                        .Where(c => !string.IsNullOrEmpty(c))
+                    : Enumerable.Empty<string>()
+            );
+
+        if (!parts.Values.Any(v => v.Any())) return null;
+
+        if (!EventPlayerChat)
+        {
+            return parts.FirstOrDefault().Value?.Select(c =>
+            {
+                if (c.StartsWith("!"))
+                {
+                    var cmd = c.TrimStart('!');
+                    return cmd.StartsWith("css_") ? cmd : "css_" + cmd;
+                }
+                return c;
+            }).Distinct().ToArray();
+        }
+
+        var first = parts.FirstOrDefault().Value?
+            .Select(c =>
+            {
+                var cmd = c.TrimStart('!');
+                if (cmd.StartsWith("css_"))
+                    cmd = cmd.Substring(4);
+                return "!" + cmd;
+            }) ?? Enumerable.Empty<string>();
+
+        var rest = parts.Skip(1).SelectMany(p => p.Value);
+        var result = first.Concat(rest).Distinct().ToArray();
+
+        return result.Length == 0 ? null : result;
     }
     
     public static Color ToColor(this string colorString)
