@@ -160,7 +160,7 @@ public class MainPlugin : BasePlugin
                 var ModelRelay = getplayers.ModelRelay;
 
                 bool shouldRemoveGlow = false;
-                if (_prefs == null || _prefs != null && !_prefs.TryGetValue(player, out _))
+                if (_prefs == null)
                 {
                     shouldRemoveGlow = true;
                 }
