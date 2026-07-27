@@ -119,6 +119,17 @@ Show Glow/Esp To Players With Flags
 - Added Give_ESP_Flags
 - Added Give_ESP_Hide
 - Added Give_ESP_SaveToPrefs (Save ESP Given By Admins Into ClientPrefs)
+- Added Lang `PrintToChatToPlayer.Give.ESP.Usage`
+- Added Lang `PrintToChatToPlayer.Give.ESP.NoTarget`
+- Added Lang `PrintToChatToPlayer.Give.ESP.Status`
+- Added Lang `PrintToChatToPlayer.Give.ESP.Check.Console`
+- Added Lang `PrintToChatToPlayer.Give.ESP.Set`
+- Added Lang `PrintToChatToPlayer.Give.ESP.Received`
+- Added Lang `PrintToChatToPlayer.Give.ESP.State.Enabled`
+- Added Lang `PrintToChatToPlayer.Give.ESP.State.Disabled`
+- Added Lang `PrintToConsoleToPlayer.Give.ESP.List.Header`
+- Added Lang `PrintToConsoleToPlayer.Give.ESP.List.Enabled`
+- Added Lang `PrintToConsoleToPlayer.Give.ESP.List.Disabled`
 - Change Lang `PrintToChatToPlayer.Toggle.Not.Allowed` To `PrintToChatToPlayer.Toggle.ESP.Not.Allowed`
 - Change Lang `PrintToChatToPlayer.Toggle.Enabled` To `PrintToChatToPlayer.Toggle.ESP.Enabled`
 - Change Lang `PrintToChatToPlayer.Toggle.Disabled` To `PrintToChatToPlayer.Toggle.ESP.Disabled`
