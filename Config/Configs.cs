@@ -65,6 +65,37 @@ namespace ESP_Players_GoldKingZ.Config
         public int Toggle_ESP_Hide { get; set; } = 0;
     }
 
+    public class Give_ESP
+    {
+        [Comment("Note: Console_Commands Can Be Execute Via Both Console And Chat By (! or css_)")]
+        [Comment("Making Both Console_Commands And Chat_Commands Empty = Disable")]
+        [String("Console_Commands", "Chat_Commands")]
+        public string Give_ESP_CommandsInGame { get; set; } = "Console_Commands: css_giveesp | Chat_Commands: ";
+
+        [Comment("If [Give_ESP_CommandsInGame] Is Used, Flags Or Group Or SteamID")]
+        [Comment("Example:")]
+        [Comment("\"SteamIDs: 76561198206086993,STEAM_0:1:507335558 | Flags: @css/root,@css/admin | Groups: #css/root,#css/admin\"")]
+        [Comment("\"SteamIDs:  | Flags:  | Groups: \" = To Allow Everyone")]
+        [String("SteamIDs", "Flags", "Groups")]
+        public string Give_ESP_Flags { get; set; } = "SteamIDs: 76561198206086993,76561198974936845 | Flags: @css/root,@css/admin | Groups: #css/root,#css/admin";
+
+        [Comment("If [Give_ESP_CommandsInGame] Is Used, Hide Chat After Execute Give_ESP_CommandsInGame?:")]
+        [Comment("0 = No")]
+        [Comment("1 = Yes, But Only After Toggle Successfully")]
+        [Comment("2 = Yes, Hide All The Time")]
+        [Range(0, 2, 0,
+        "Give_ESP_Hide: is invalid, setting to default value (0) Please Choose From 0 To 2.\n" +
+        "0 = No\n" +
+        "1 = Yes, But Only After Toggle Successfully\n" +
+        "2 = Yes, Hide All The Time")]
+        public int Give_ESP_Hide { get; set; } = 2;
+
+        [Comment("Save ESP Given By Admins Into ClientPrefs If [Cookies_Enable/MySql_Enable] Enabled?")]
+        [Comment("true = Yes (Player Keeps It After Reconnect/Disconnect/Map Change)")]
+        [Comment("false = No (Session Only, Resets On Reconnect/Disconnect/Map Change)")]
+        public bool Give_ESP_SaveToPrefs { get; set; } = false;
+    }
+
     public class MySqlServer
     {
         [Comment("MySQL Server address (hostname or IP)")]
@@ -119,7 +150,8 @@ namespace ESP_Players_GoldKingZ.Config
         [Comment("Reload ESP-Players Plugin")]
         public Reload_Plugin Reload_Plugin { get; set; } = new();
 
-        [BreakLine("----------------------------[ ↓ Glow Config ↓ ]----------------------------{nextline}")]
+        [Comment("Give ESP To Players On/Off")]
+        public Give_ESP Give_ESP { get; set; } = new();
 
         [Comment("Toggle On/Off ESP")]
         public Toggle_ESP Toggle_ESP { get; set; } = new();
@@ -155,6 +187,8 @@ namespace ESP_Players_GoldKingZ.Config
         [Comment("true = Yes (Disable Teammate ESP)")]
         [Comment("false = No (Show All)")]
         public bool ShowOnlyEnemyTeam { get; set; } = true;
+
+        [BreakLine("----------------------------[ ↓ Glow Config ↓ ]----------------------------{nextline}")]
 
         [Comment("Glow Only When Crosshair Near To Player Glow?")]
         [Comment("true = Yes")]

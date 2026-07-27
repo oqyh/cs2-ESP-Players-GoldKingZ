@@ -105,7 +105,33 @@ public class Helper
         }
     }
 
+    public static void AdvancedPlayerPrintToConsole(CCSPlayerController player, string message, params object[] args)
+    {
+        if (string.IsNullOrEmpty(message)) return;
 
+        for (int i = 0; i < args.Length; i++)
+        {
+            message = message.Replace($"{{{i}}}", args[i].ToString());
+        }
+        if (Regex.IsMatch(message, "{nextline}", RegexOptions.IgnoreCase))
+        {
+            string[] parts = Regex.Split(message, "{nextline}", RegexOptions.IgnoreCase);
+            foreach (string part in parts)
+            {
+                string trimmedPart = part.Trim();
+                trimmedPart = trimmedPart.ReplaceColorTags();
+                if (!string.IsNullOrEmpty(trimmedPart))
+                {
+                    player.PrintToConsole(" " + trimmedPart);
+                }
+            }
+        }
+        else
+        {
+            message = message.ReplaceColorTags();
+            player.PrintToConsole(message);
+        }
+    }
     public static bool IsPlayerInGroupPermission(CCSPlayerController player, string groups)
     {
         if (string.IsNullOrEmpty(groups) || player == null || !player.IsValid)
@@ -255,7 +281,7 @@ public class Helper
     public static void MuteCommands(CounterStrikeSharp.API.Modules.UserMessages.UserMessage? um, int Config, bool Fully = false)
     {
         if (um == null) return;
-        if (!Fully && Config == 2 || Fully && Config > 0)
+        if ((!Fully && Config > 0) || (Fully && Config == 2))
         {
             um.Recipients.Clear();
         }
@@ -271,6 +297,7 @@ public class Helper
             var initialData = new Globals.PlayerDataClass(
                 player,
                 "",
+                false,
                 null!,
                 null!,
                 DateTime.MinValue
@@ -465,6 +492,7 @@ public class Helper
 
         RegisterCssCommands(Configs.Instance.Reload_Plugin.Reload_Plugin_CommandsInGame.ConvertCommands(), "Commands To Reload ESP Plugin", MainPlugin.Instance.Game_UserMessages.CommandsAction_ReloadPlugin);
         RegisterCssCommands(Configs.Instance.Toggle_ESP.Toggle_ESP_CommandsInGame.ConvertCommands(), "Commands To Toggle On/Off ESP", MainPlugin.Instance.Game_UserMessages.CommandsAction_Toggle_ESP);
+        RegisterCssCommands(Configs.Instance.Give_ESP.Give_ESP_CommandsInGame.ConvertCommands(), "Commands To Give ESP To Players On/Off", MainPlugin.Instance.Game_UserMessages.CommandsAction_Give_ESP);
 
         StartTimer();
     }
@@ -486,5 +514,6 @@ public class Helper
 
         RemoveCssCommands(Configs.Instance.Reload_Plugin.Reload_Plugin_CommandsInGame.ConvertCommands(), MainPlugin.Instance.Game_UserMessages.CommandsAction_ReloadPlugin);
         RemoveCssCommands(Configs.Instance.Toggle_ESP.Toggle_ESP_CommandsInGame.ConvertCommands(), MainPlugin.Instance.Game_UserMessages.CommandsAction_Toggle_ESP);
+        RemoveCssCommands(Configs.Instance.Give_ESP.Give_ESP_CommandsInGame.ConvertCommands(), MainPlugin.Instance.Game_UserMessages.CommandsAction_Give_ESP);
     }
 }

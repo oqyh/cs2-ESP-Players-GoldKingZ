@@ -25,7 +25,7 @@ public sealed class ClientPrefs
 public class MainPlugin : BasePlugin
 {
     public override string ModuleName => "Show Glow/Esp To Players With Flags";
-    public override string ModuleVersion => "1.0.2";
+    public override string ModuleVersion => "1.0.3";
     public override string ModuleAuthor => "Gold KingZ";
     public override string ModuleDescription => "https://github.com/oqyh";
     public static MainPlugin Instance { get; set; } = new();
@@ -160,7 +160,7 @@ public class MainPlugin : BasePlugin
                 var ModelRelay = getplayers.ModelRelay;
 
                 bool shouldRemoveGlow = false;
-                if (_prefs == null)
+                if (_prefs == null || _prefs != null && !_prefs.TryGetValue(player, out _))
                 {
                     shouldRemoveGlow = true;
                 }
@@ -241,8 +241,16 @@ public class MainPlugin : BasePlugin
 
         Helper.RemoveGlow(player);
 
-        if (g_Main.Player_Data.ContainsKey(player.Slot))
+        if (g_Main.Player_Data.TryGetValue(player.Slot, out var playerData))
         {
+            if(!Configs.Instance.Give_ESP.Give_ESP_SaveToPrefs && playerData.Gived_ESP)
+            {
+                if(_prefs != null && _prefs.TryGetValue(player.Slot, out _))
+                {
+                    _prefs.DropPlayer(player.Slot);
+                }
+            }
+
             g_Main.Player_Data.Remove(player.Slot);
         }
 

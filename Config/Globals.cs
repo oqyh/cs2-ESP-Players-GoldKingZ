@@ -11,14 +11,16 @@ public class Globals
     {
         public CCSPlayerController Player { get; set; }
         public string Player_ModelName  { get; set; }
+        public bool Gived_ESP  { get; set; }
         public CDynamicProp ModelRelay { get; set; }
         public CDynamicProp ModelGlow { get; set; }
         public DateTime EventPlayerChat { get; set; }
 
-        public PlayerDataClass(CCSPlayerController Playerr, string Player_ModelNamee, CDynamicProp ModelRelayy, CDynamicProp ModelGloww, DateTime EventPlayerChatt)
+        public PlayerDataClass(CCSPlayerController Playerr, string Player_ModelNamee, bool Gived_ESPP, CDynamicProp ModelRelayy, CDynamicProp ModelGloww, DateTime EventPlayerChatt)
         {
             Player = Playerr;
             Player_ModelName = Player_ModelNamee;
+            Gived_ESP = Gived_ESPP;
             ModelRelay = ModelRelayy;
             ModelGlow = ModelGloww;
             EventPlayerChat = EventPlayerChatt;
