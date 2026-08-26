@@ -1,8 +1,19 @@
-## .:[ Join Our Discord For Support ]:.
+---
+<h2 align="center">.:[ Community | Support ]:.</h2>
+<p align="center">
+  <a href="https://discord.com/invite/U7AuQhu">
+    <img src="https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white" />
+  </a>
+  <a href="https://ko-fi.com/goldkingz">
+    <img src="https://img.shields.io/badge/Ko--fi-Support-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white" />
+  </a>
+</p>
+
+---
 
 <a href="https://discord.com/invite/U7AuQhu"><img src="https://discord.com/api/guilds/651838917687115806/widget.png?style=banner2"></a>
 
-# [CS2] ESP-Players-GoldKingZ (1.0.3)
+# [CS2] ESP-Players-GoldKingZ (1.0.4)
 
 Show Glow/Esp To Players With Flags
 
@@ -52,11 +63,11 @@ Show Glow/Esp To Players With Flags
 | `Give_ESP_CommandsInGame` | Commands to give ESP to players on/off (console/chat by `!` or `css_`) | `Console_Commands:` `Chat_Commands:`<br>Both empty = Disable | - |
 | `Give_ESP_Flags` | Restrict give command to SteamIDs, Flags, Groups | `SteamIDs:` `Flags:` `Groups:`<br>All empty = Allow everyone | `Give_ESP_CommandsInGame` |
 | `Give_ESP_Hide` | Hide chat after executing give command | `0`-No<br>`1`-Only after successful toggle<br>`2`-Hide all the time | `Give_ESP_Flags` |
-| `Give_ESP_SaveToPrefs` | Save ESP given by admins into ClientPrefs | `true`-Yes (keeps after reconnect/map change)<br>`false`-No (session only) | `Cookies_Enable/MySql_Enable` |
+| `Give_ESP_SaveOnDisconnect` | Keep admin-given ESP after a player disconnects/reconnects | `true`-Yes (kept on reconnect, cleared on map change)<br>`false`-No (one-time session, cleared on disconnect or map change) | `Give_ESP_CommandsInGame` |
 | `Toggle_ESP_CommandsInGame` | Commands to toggle ESP on/off (console/chat by `!` or `css_`) | `Console_Commands:` `Chat_Commands:`<br>Both empty = Disable | - |
 | `Toggle_ESP_Flags` | Restrict toggle command to SteamIDs, Flags, Groups | `SteamIDs:` `Flags:` `Groups:`<br>All empty = Allow everyone | `Toggle_ESP_CommandsInGame` |
 | `Toggle_ESP_Hide` | Hide chat after executing toggle command | `0`-No<br>`1`-Only after successful toggle<br>`2`-Hide all the time | `Toggle_ESP_Flags` |
-| `DefaultToggleGlow` | Default glow toggle for new players | `true`-On<br>`false`-Off (must toggle manually) | - |
+| `Default_Toggle_ESP` | Default ESP toggle for new players | `true`-On<br>`false`-Off (must toggle manually) | - |
 | `DisableOnWarmUp` | Disable ESP during warmup | `true`/`false` | - |
 | `DisableGlowOnGOTV` | Disable glow in demo GOTV/HLTV | `true`/`false` | - |
 | `Show_ESP_For` | Who can see ESP | `0`-Any<br>`1`-Dead players only<br>`2`-Spec players only | - |
@@ -79,7 +90,7 @@ Show Glow/Esp To Players With Flags
   
 | Property | Description | Values | Required |
 |----------|-------------|--------|----------|
-| `Cookies_Enable` | Save player data locally by cookies | `0`-No<br>`1`-On disconnect (Warning Performance)<br>`2`-On map change (Recommended) | - |
+| `Cookies_Enable` | Save player data locally by cookies (in `../plugins/ClientPrefs-GoldKingZ/ESP-Players-GoldKingZ/`) | `0`-No<br>`1`-On disconnect (Warning Performance)<br>`2`-On map change (Recommended) | - |
 | `Cookies_AutoRemoveInactivePlayersOlderThanDays` | Auto delete inactive players (days) | `0`-Don't delete<br>`1`+ days | `Cookies_Enable=1 or 2` |
  
 </details>
@@ -108,10 +119,143 @@ Show Glow/Esp To Players With Flags
 ---
 
 
+## 💻 For Developers
+ 
+**Option A — NuGet (recommended):**
+ 
+```bash
+dotnet add package ESP_Players_GoldKingZ.Shared
+```
+ 
+Or add to your `.csproj`:
+ 
+```xml
+<PackageReference Include="ESP_Players_GoldKingZ.Shared" Version="1.0.4" />
+```
+ 
+**Option B — Reference the DLL directly:**
+ 
+1. Download the latest `ESP-Players-GoldKingZ.x.x.x.zip` release
+2. Open the `.zip`, find the `shared` folder, take `ESP-Players-GoldKingZ.Shared.dll`
+3. Drop it into your project's root folder
+4. Reference it in your `.csproj`:
+```xml
+<Reference Include="ESP-Players-GoldKingZ.Shared">
+    <HintPath>ESP-Players-GoldKingZ.Shared.dll</HintPath>
+    <Private>false</Private>
+</Reference>
+```
+ 
+> Either way, the **core plugin** (`ESP-Players-GoldKingZ.dll`) must be installed on the server — the NuGet package / DLL is only the API surface your plugin compiles against.
+ 
+---
+
+
+## 🚀 Quick Start
+ 
+### 1. Get the API
+ 
+```csharp
+using ESP_Players_GoldKingZ.Shared;
+ 
+private IESPPlayersApi? _esp;
+ 
+public override void OnAllPluginsLoaded(bool hotReload)
+{
+    _esp = ESPPlayersApi.Get();
+    if (_esp == null)
+    {
+        Logger.LogError("[MyPlugin] Missing cs2-ESP-Players-GoldKingZ API !");
+        return;
+    }
+ 
+    _esp.Hook(OnESPChanged);
+}
+ 
+public override void Unload(bool hotReload)
+{
+    _esp?.Unhook(OnESPChanged);
+}
+```
+ 
+### 2. Use it
+ 
+```csharp
+if (_esp == null) return;
+ 
+if (!_esp.IsESPActive(player))
+    _esp.SetESP(player, true);
+```
+ 
+### 3. Listen for changes
+ 
+```csharp
+private void OnESPChanged(CCSPlayerController player, bool state)
+{
+    Server.PrintToChatAll($"{player.PlayerName} ESP -> {state}");
+}
+```
+ 
+That's it.
+ 
+> **Note:** call `Get()` in `OnAllPluginsLoaded`, not `Load` — the capability is not registered yet. Always null-check so your plugin keeps working without the core plugin.
+ 
+---
+ 
+## 📖 API Methods
+ 
+### State
+ 
+| Method | Description |
+| --- | --- |
+| `IsESPActive(player)` / `(slot)` | `true` if ESP is active — own toggle OR admin-given |
+| `IsESPActive(..., personalToggleOnly: true)` | `true` only if the player toggled it on themselves |
+ 
+> Granted ESP is an **OR** on top of the player's own toggle, not a gate.
+ 
+### Permissions
+ 
+| Method | Description |
+| --- | --- |
+| `HasPermission(player, permissionsString)` / `(slot, ...)` | `true` if the player matches the rule |
+| `HasPermission(..., SteamIDs:, Flags:, Groups:)` | Match by named segments — full string wins if both are given |
+ 
+### Control
+ 
+| Method | Description |
+| --- | --- |
+| `SetESP(player, state)` / `(slot, state)` | Grant (`true`) or revoke (`false`) admin-style ESP |
+ 
+> Fires `OnESPChanged` only when the state actually changes.
+ 
+### Hooks
+ 
+| Method | Description |
+| --- | --- |
+| `Hook(handler)` | Subscribe to ESP changes. Safe to call twice — no double-subscribe |
+| `Unhook(handler)` | Remove the handler — call in your plugin's `Unload` |
+ 
+> Handler signature: `void OnESPChanged(CCSPlayerController player, bool state)`
+ 
+---
+
+## 🧪 Example Plugin
+ 
+See [cs2-ESP-PlayersTest-GoldKingZ](https://github.com/oqyh/cs2-ESP-Players-GoldKingZ/tree/main/cs2-ESP-PlayersTest-GoldKingZ) for a full working example covering every API method.
+
 ## 📜 Changelog
 
 <details>
 <summary><b>📋 View Version History</b> (Click to expand 🔽)</summary>
+
+### [1.0.4]
+- Added Api ESP-Players-GoldKingZ.Shared.dll
+- Added Test Plugin How To Use ESP-Players-GoldKingZ.Shared.dll
+- Update API ClientPrefs-GoldKingZ 1.0.4 
+- Fix Some Bugs
+- Fix Hidden Team CsTeam.None
+- Fix Alive Or Controlling Bot ESP
+- Remove force `sv_hibernate_when_empty false`
 
 ### [1.0.3]
 - Reorganize config.json Layout
