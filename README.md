@@ -241,7 +241,7 @@ That's it.
 
 ## 🧪 Example Plugin
  
-See [cs2-ESP-PlayersTest-GoldKingZ](https://github.com/oqyh/cs2-ESP-Players-GoldKingZ/tree/main/cs2-ESP-PlayersTest-GoldKingZ) for a full working example covering every API method.
+See [ESP-PlayersTest-GoldKingZ.cs](https://github.com/oqyh/cs2-ESP-Players-GoldKingZ/blob/main/cs2-ESP-PlayersTest-GoldKingZ/ESP-PlayersTest-GoldKingZ.cs) for a full working example covering every API method.
 
 ## 📜 Changelog
 
