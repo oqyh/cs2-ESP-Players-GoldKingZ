@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+		<OutputPath>$(ProjectDir)..\ESP-Players-GoldKingZ_Build\addons\counterstrikesharp\shared\ESP-Players-GoldKingZ.Shared\</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<Configuration>Release</Configuration>
+		<DebugType>none</DebugType>
+
+		<PackageId>ESP_Players_GoldKingZ.Shared</PackageId>
+		<Version>1.0.4</Version>
+		<Authors>Gold KingZ</Authors>
+		<Description>Shared API for cs2-ESP-Players-GoldKingZ — Show Glow/Esp To Players With Flags for CounterStrikeSharp plugins.</Description>
+		<PackageProjectUrl>https://github.com/oqyh/cs2-ESP-Players-GoldKingZ</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/oqyh/cs2-ESP-Players-GoldKingZ</RepositoryUrl>
+		<PackageTags>cs2;counterstrikesharp;GoldKingZ;oqyh;esp;glow;</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CounterStrikeSharp.API" Version="*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+</Project>

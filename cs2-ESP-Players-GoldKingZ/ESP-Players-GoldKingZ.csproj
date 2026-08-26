@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <Configuration>Release</Configuration>
+        <DebugType>none</DebugType>
+        <PluginOutputDir>$(ProjectDir)..\ESP-Players-GoldKingZ_Build\addons\counterstrikesharp\plugins\ESP-Players-GoldKingZ\</PluginOutputDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\cs2-ESP-Players-GoldKingZ.Shared\ESP-Players-GoldKingZ.Shared.csproj">
+            <Private>false</Private>
+        </ProjectReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="cs2-ClientPrefs-GoldKingZ.Shared">
+            <HintPath>ClientPrefs-GoldKingZ.Shared.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CounterStrikeSharp.API" Version="*" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    </ItemGroup>
+
+    <Target Name="DeployPluginFiles" AfterTargets="Build">
+        <MakeDir Directories="$(PluginOutputDir)" />
+        <ItemGroup>
+            <PluginFiles Include="$(ProjectDir)bin\Release\ESP-Players-GoldKingZ.dll" />
+            <PluginFiles Include="$(ProjectDir)bin\Release\Newtonsoft.Json.dll" />
+            <PluginFiles Include="$(ProjectDir)bin\Release\ESP-Players-GoldKingZ.deps.json" />
+        </ItemGroup>
+        
+        <ItemGroup>
+            <LangFiles Include="$(ProjectDir)lang\**\*.*" />
+        </ItemGroup>
+
+        <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(PluginOutputDir)" SkipUnchangedFiles="false" />
+        <Copy SourceFiles="@(LangFiles)" DestinationFiles="@(LangFiles->'$(PluginOutputDir)lang\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="false" />
+    </Target>
+</Project>

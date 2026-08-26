@@ -1,0 +1,21 @@
+{
+	"PrintToChatToPlayer.ReloadPlugin.Not.Allowed": "{green}[ESP] {darkred}您没有权限",
+	"PrintToChatToPlayer.ReloadPlugin.Successfully": "{green}[ESP] {grey}插件已重新加载 {lime}成功",
+
+	"PrintToChatToPlayer.Toggle.ESP.Not.Allowed": "{green}[ESP] {darkred}你没有权限访问此功能",
+	"PrintToChatToPlayer.Toggle.ESP.Enabled": "{green}[ESP] {grey}ESP玩家功能已 {lime}启用",
+	"PrintToChatToPlayer.Toggle.ESP.Disabled": "{green}[ESP] {grey}ESP玩家功能已 {darkred}禁用",
+
+	"PrintToChatToPlayer.Give.ESP.Not.Allowed": "{green}[ESP] {darkred}你没有权限访问此功能",
+	"PrintToChatToPlayer.Give.ESP.Usage": "{green}[ESP] {grey}用法：{lime}{0} <名称|#用户ID|@all|@ct|@t|@me|@aim> <1/0/true/false> {nextline} {grey}- 空值 = 检查状态",
+	"PrintToChatToPlayer.Give.ESP.NoTarget": "{green}[ESP] {darkred}未找到符合条件的玩家 {lime}{0}",
+	"PrintToChatToPlayer.Give.ESP.Status": "{green}[ESP] {purple}{0} {grey}的 ESP当前值为 {1}",
+	"PrintToChatToPlayer.Give.ESP.Check.Console": "{green}[ESP] {grey}玩家过多，完整名单已打印在您的 {lime}游戏主机上",
+	"PrintToChatToPlayer.Give.ESP.Set": "{green}[ESP] {grey}ESP 针对 {purple}{0} {grey}已 {1}",
+	"PrintToChatToPlayer.Give.ESP.Received": "{green}[ESP] {grey}一位管理员 ({purple}{0}{grey}) 拥有 {1} {grey}您的 ESP",
+	"PrintToChatToPlayer.Give.ESP.State.Enabled": "{lime}已启用",
+	"PrintToChatToPlayer.Give.ESP.State.Disabled": "{darkred}已禁用",
+	"PrintToConsoleToPlayer.Give.ESP.List.Header": "{green}[ESP] ESP 状态（{0} 名玩家）：",
+	"PrintToConsoleToPlayer.Give.ESP.List.Enabled": "  {0} : 已启用",
+	"PrintToConsoleToPlayer.Give.ESP.List.Disabled": "  {0} : 已禁用"
+}

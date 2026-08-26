@@ -1,0 +1,21 @@
+{
+	"PrintToChatToPlayer.ReloadPlugin.Not.Allowed": "{green}[ESP] {darkred}You Dont Have Permission",
+	"PrintToChatToPlayer.ReloadPlugin.Successfully": "{green}[ESP] {grey}Plugin Reloaded {lime}Successfully",
+
+	"PrintToChatToPlayer.Toggle.ESP.Not.Allowed": "{green}[ESP] {darkred}You Dont Have Permission To Access This",
+	"PrintToChatToPlayer.Toggle.ESP.Enabled": "{green}[ESP] {grey}ESP Players Has Been {lime}Enabled",
+	"PrintToChatToPlayer.Toggle.ESP.Disabled": "{green}[ESP] {grey}ESP Players Has Been {darkred}Disabled",
+
+	"PrintToChatToPlayer.Give.ESP.Not.Allowed": "{green}[ESP] {darkred}You Dont Have Permission To Access This",
+	"PrintToChatToPlayer.Give.ESP.Usage": "{green}[ESP] {grey}Usage: {lime}{0} <name|#userid|@all|@ct|@t|@me|@aim> <1/0/true/false> {nextline} {grey}- Empty Value = Check Status",
+	"PrintToChatToPlayer.Give.ESP.NoTarget": "{green}[ESP] {darkred}No Player Found Matching {lime}{0}",
+	"PrintToChatToPlayer.Give.ESP.Status": "{green}[ESP] {purple}{0}{grey}'s ESP Is Currently {1}",
+	"PrintToChatToPlayer.Give.ESP.Check.Console": "{green}[ESP] {grey}Too Many Players, Full List Printed In Your {lime}Game Console",
+	"PrintToChatToPlayer.Give.ESP.Set": "{green}[ESP] {grey}ESP For {purple}{0} {grey}Has Been {1}",
+	"PrintToChatToPlayer.Give.ESP.Received": "{green}[ESP] {grey}An Admin ({purple}{0}{grey}) Has {1} {grey}Your ESP",
+	"PrintToChatToPlayer.Give.ESP.State.Enabled": "{lime}Enabled",
+	"PrintToChatToPlayer.Give.ESP.State.Disabled": "{darkred}Disabled",
+	"PrintToConsoleToPlayer.Give.ESP.List.Header": "[ESP Players] ESP Status ({0} Players):",
+	"PrintToConsoleToPlayer.Give.ESP.List.Enabled": "  {0} : Enabled",
+	"PrintToConsoleToPlayer.Give.ESP.List.Disabled": "  {0} : Disabled"
+}
