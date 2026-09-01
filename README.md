@@ -11,8 +11,6 @@
 
 ---
 
-<a href="https://discord.com/invite/U7AuQhu"><img src="https://discord.com/api/guilds/651838917687115806/widget.png?style=banner2"></a>
-
 # [CS2] ESP-Players-GoldKingZ (1.0.4)
 
 Show Glow/Esp To Players With Flags
@@ -83,28 +81,6 @@ Show Glow/Esp To Players With Flags
 | `GlowRange` | Max range to show player glow | e.g. `5000` | - |
 | `Glow_Color_CT` | Glow color for CT players (R, G, B, A) | e.g. `0, 190, 255, 255`<br>[Color Picker](https://rgbacolorpicker.com/) | - |
 | `Glow_Color_T` | Glow color for T players (R, G, B, A) | e.g. `243, 0, 93, 255`<br>[Color Picker](https://rgbacolorpicker.com/) | - |
- 
-</details>
-<details>
-<summary><b>Locally Config</b> (ClientPrefs-GoldKingZ API) (Click to expand 🔽)</summary>
-  
-| Property | Description | Values | Required |
-|----------|-------------|--------|----------|
-| `Cookies_Enable` | Save player data locally by cookies (in `../plugins/ClientPrefs-GoldKingZ/ESP-Players-GoldKingZ/`) | `0`-No<br>`1`-On disconnect (Warning Performance)<br>`2`-On map change (Recommended) | - |
-| `Cookies_AutoRemoveInactivePlayersOlderThanDays` | Auto delete inactive players (days) | `0`-Don't delete<br>`1`+ days | `Cookies_Enable=1 or 2` |
- 
-</details>
-<details>
-<summary><b>MySql Config</b> (ClientPrefs-GoldKingZ API) (Click to expand 🔽)</summary>
-  
-| Property | Description | Values | Required |
-|----------|-------------|--------|----------|
-| `MySql_Enable` | Save player data to MySQL | `0`-No<br>`1`-On disconnect (Warning Performance)<br>`2`-On map change (Recommended) | - |
-| `MySql_ConnectionTimeout` | Connection timeout (seconds) | e.g. `30` | `MySql_Enable=1 or 2` |
-| `MySql_RetryAttempts` | Retry attempts on connection failure | e.g. `3` | `MySql_Enable=1 or 2` |
-| `MySql_RetryDelay` | Delay between retries (seconds) | e.g. `2` | `MySql_Enable=1 or 2` |
-| `MySql_Servers` | MySQL server configurations (add as many as you like) | Array of server objects<br>(`Server`, `Port`, `Database`, `Username`, `Password`) | `MySql_Enable=1 or 2` |
-| `MySql_AutoRemoveInactivePlayersOlderThanDays` | Auto delete inactive players (days) | `0`-Don't delete<br>`1`+ days | `MySql_Enable=1 or 2` |
  
 </details>
 <details>
