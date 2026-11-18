@@ -23,7 +23,7 @@ public sealed class ClientPrefs
     public bool Toggle_ESP { get; set; } = Configs.Instance.Toggle_ESP.Default_Toggle_ESP;
 }
 
-public class MainPlugin : BasePlugin
+public partial class MainPlugin : BasePlugin
 {
     public override string ModuleName => "Show Glow/Esp To Players With Flags";
     public override string ModuleVersion => "1.0.4";
@@ -114,16 +114,12 @@ public class MainPlugin : BasePlugin
         }
     }
 
-    public void OnMapStart(string mapname)
-    {
-        Helper.StartTimer();
-    }
-
     public HookResult OnEventRoundStart(EventRoundStart @event, GameEventInfo info)
     {
         if (@event == null) return HookResult.Continue;
 
         Helper.StartTimer();
+        ScheduleEspReconcile();
 
         return HookResult.Continue;
     }
@@ -134,6 +130,7 @@ public class MainPlugin : BasePlugin
         if(player == null || !player.IsValid)return;
 
         Helper.CheckPlayerInGlobals(player);
+        ScheduleEspReconcile();
     }
 
     public HookResult OnEventPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
@@ -148,93 +145,8 @@ public class MainPlugin : BasePlugin
         return HookResult.Continue;
     }
 
-    public void OnCheckTransmit(CCheckTransmitInfoList infoList)
-    {
-        bool onlyEnemy = Configs.Instance.ShowOnlyEnemyTeam && (Configs.Instance.Show_ESP_For == 0 || Configs.Instance.Show_ESP_For == 1);
+    public void OnCheckTransmit(CCheckTransmitInfoList infoList) => ApplyTransmitPlans(infoList);
 
-        foreach ((CCheckTransmitInfo info, CCSPlayerController? player) in infoList)
-        {
-            if (player == null || !player.IsValid) continue;
-
-            bool shouldRemoveGlow = false;
-
-            if (_prefs == null)
-            {
-                shouldRemoveGlow = true;
-            }
-            else if (player.IsHLTV)
-            {
-                if (Configs.Instance.DisableGlowOnGOTV)
-                {
-                    shouldRemoveGlow = true;
-                }
-            }
-            else
-            {
-                bool hasToggle = _prefs!.TryGetValue(player.Slot, out var prefs) && prefs.Toggle_ESP;
-                bool hasGivenESP = g_Main.Player_Data.TryGetValue(player.Slot, out var viewerData) && viewerData.Gived_ESP;
-
-                if (!hasToggle && !hasGivenESP)
-                {
-                    shouldRemoveGlow = true;
-                }
-            }
-
-            if (!shouldRemoveGlow && Configs.Instance.Show_ESP_For == 1 && player.IsAlive(true))
-            {
-                shouldRemoveGlow = true;
-            }
-
-            if (!shouldRemoveGlow && Configs.Instance.Show_ESP_For == 2 && player.TeamNum > (int)CsTeam.Spectator)
-            {
-                shouldRemoveGlow = true;
-            }
-
-            int viewerSlot = player.Slot;
-            byte viewerTeam = player.TeamNum;
-
-            foreach (var kv in g_Main.Player_Data)
-            {
-                var data = kv.Value;
-                if (data == null) continue;
-
-                var ModelGlow = data.ModelGlow;
-                var ModelRelay = data.ModelRelay;
-
-                bool hasGlow = ModelGlow != null && ModelGlow.IsValid;
-                bool hasRelay = ModelRelay != null && ModelRelay.IsValid;
-                if (!hasGlow && !hasRelay) continue;
-
-                bool remove = shouldRemoveGlow;
-
-                if (!remove)
-                {
-                    if (kv.Key == viewerSlot)
-                    {
-                        remove = true;
-                    }
-                    else
-                    {
-                        var targetPlayer = data.Player;
-                        if (targetPlayer == null || !targetPlayer.IsValid)
-                        {
-                            remove = true;
-                        }
-                        else if (onlyEnemy && viewerTeam == targetPlayer.TeamNum)
-                        {
-                            remove = true;
-                        }
-                    }
-                }
-
-                if (!remove) continue;
-
-                if (hasGlow) info.TransmitEntities.Remove(ModelGlow!);
-                if (hasRelay) info.TransmitEntities.Remove(ModelRelay!);
-            }
-        }
-    }
-    
     public HookResult OnPlayerSay(CCSPlayerController? player, CommandInfo info)
     {
         return HandlePlayerMessage(player, info.ArgString.Trim('"'));
@@ -261,27 +173,6 @@ public class MainPlugin : BasePlugin
         return HookResult.Continue;
     }
 
-    public HookResult OnEventPlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo info)
-    {
-        if (@event == null) return HookResult.Continue;
-
-        var player = @event.Userid;
-        if(player == null || !player.IsValid) return HookResult.Continue;
-
-        Helper.RemoveGlow(player);
-
-        if(!Configs.Instance.Give_ESP.Give_ESP_SaveOnDisconnect)
-        {
-            if (g_Main.Player_Data.ContainsKey(player.Slot))
-            {
-                g_Main.Player_Data.Remove(player.Slot);
-            }
-        }
-        
-
-        return HookResult.Continue;
-    }
-    
     public void OnMapEnd()
     {
         try

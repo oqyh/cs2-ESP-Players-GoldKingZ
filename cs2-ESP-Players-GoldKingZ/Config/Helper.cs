@@ -10,7 +10,6 @@ using System.Security.Cryptography;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities;
 using Microsoft.VisualBasic;
-using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 
 namespace ESP_Players_GoldKingZ;
@@ -266,7 +265,15 @@ public class Helper
     {
         var g_Main = MainPlugin.Instance.g_Main;
 
-        g_Main.Clear();
+        MainPlugin.Instance.StopEspRuntime();
+        try
+        {
+            g_Main.Clear();
+        }
+        finally
+        {
+            MainPlugin.Instance.ClearTransmitCache();
+        }
     }
 
     
@@ -293,21 +300,22 @@ public class Helper
         if(player == null || !player.IsValid) return;
 
         var g_Main = MainPlugin.Instance.g_Main;
-        if (!g_Main.Player_Data.ContainsKey(player.Slot))
+        if (g_Main.Player_Data.TryGetValue(player.Slot, out var existing))
         {
-            var initialData = new Globals.PlayerDataClass(
-                player,
-                "",
-                false,
-                null!,
-                null!,
-                DateTime.MinValue
-            );
-            g_Main.Player_Data.TryAdd(player.Slot, initialData);
-        }else
-        {
-            g_Main.Player_Data[player.Slot].Player = player;
+            uint controllerHandle = player.EntityHandle.Raw;
+            if (existing.ControllerHandle != controllerHandle)
+            {
+                RemoveGlowData(existing);
+                MainPlugin.Instance.ForgetViewer(player.Slot);
+                existing.ControllerHandle = controllerHandle;
+            }
+
+            existing.Player = player;
+            return;
         }
+
+        g_Main.Player_Data.Add(player.Slot, new Globals.PlayerDataClass(
+            player, "", false, null!, null!, DateTime.MinValue));
     }
 
     public static CCSGameRules? GetGameRules()
@@ -330,151 +338,192 @@ public class Helper
 
     public static void RemoveGlow(CCSPlayerController player)
     {
-        var g_Main = MainPlugin.Instance.g_Main;
-        if(player == null || !player.IsValid) return;
+        if (!MainPlugin.Instance.g_Main.Player_Data.TryGetValue(player.Slot, out var data)
+            || data.ControllerHandle != player.EntityHandle.Raw) return;
 
-        if (!g_Main.Player_Data.TryGetValue(player.Slot, out var handle))return;
-
-        if(handle.ModelRelay != null && handle.ModelRelay.IsValid)
-        {
-            handle.ModelRelay.Remove();
-        }
-        handle.ModelRelay = null!;
-
-        if(handle.ModelGlow != null && handle.ModelGlow.IsValid)
-        {
-            handle.ModelGlow.Remove();
-        }
-        handle.ModelGlow = null!;
-
-        handle.Player_ModelName = "";
+        RemoveGlowData(data);
     }
 
-    public static void SetGlowPlayer(CCSPlayerController Getplayer)
+    internal static void RemoveGlowData(Globals.PlayerDataClass data)
     {
-        var g_Main = MainPlugin.Instance.g_Main;
-        if(Getplayer == null 
-        || !Getplayer.IsValid
-        || !g_Main.Player_Data.TryGetValue(Getplayer.Slot, out var handle)) return;
+        var glow = data.ModelGlow;
+        var relay = data.ModelRelay;
+        data.ModelGlow = null!;
+        data.ModelRelay = null!;
+        data.Player_ModelName = "";
+        data.PawnHandle = 0;
+        RemoveEspProp(glow);
+        RemoveEspProp(relay);
+    }
 
-        var player = Getplayer.Get_CCSPlayerController_ControlledBot();
-        if(player == null || !player.IsValid) return;
-
-        string player_model = "";
-        if (player.IsAlive())
+    private static void RemoveEspProp(CDynamicProp? prop)
+    {
+        try
         {
-            player_model = player.PlayerPawn.Value?.CBodyComponent?.SceneNode?.GetSkeletonInstance().ModelState.ModelName ?? "";
+            MainPlugin.Instance.RemoveEspEntity(prop);
+        }
+        catch (Exception ex)
+        {
+            DebugMessage($"ESP entity cleanup failed: {ex.Message}", true);
+        }
+    }
+
+    private static void SetGlowPlayer(Globals.PlayerDataClass data, bool hasViewer,
+        Color ctColor, Color tColor)
+    {
+        var plugin = MainPlugin.Instance;
+        var player = hasViewer ? data.Player.Get_CCSPlayerController_ControlledBot() : null;
+        var pawn = player?.PlayerPawn.Value;
+        if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+        {
+            RemoveGlowData(data);
+            return;
         }
 
-        if(handle.ModelGlow != null && handle.ModelGlow.IsValid)
+        string model = pawn.CBodyComponent?.SceneNode?.GetSkeletonInstance().ModelState.ModelName ?? "";
+        if (string.IsNullOrEmpty(model))
         {
-            bool ModelChanged = !string.IsNullOrEmpty(player_model) && !string.IsNullOrEmpty(handle.Player_ModelName) && handle.Player_ModelName != player_model;
-
-            if(!ModelChanged && player.IsAlive()) return;
-
-            RemoveGlow(player);
-
-            if(!player.IsAlive()) return;
+            RemoveGlowData(data);
+            return;
         }
 
-        RemoveGlow(player);
-
-        if (!player.IsAlive()
-        || Configs.Instance.DisableOnWarmUp && IsWarmup()
-        || string.IsNullOrEmpty(player_model))return;
-
-        string uniqueName_ModelRelay = "MR_" + Guid.NewGuid().ToString("N");
-        string uniqueName_ModelGlow = "MG_" + Guid.NewGuid().ToString("N");
-        handle.ModelRelay = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic")!;
-        if (handle.ModelRelay == null)return;
-        handle.ModelRelay.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags &= ~(1u << 2);
-        handle.ModelRelay.SetModel(player_model);
-        handle.ModelRelay.DispatchSpawn();
-        if(handle.ModelRelay.Entity != null)handle.ModelRelay.Entity.Name = uniqueName_ModelRelay;
-        handle.ModelRelay.Spawnflags = 256u;
-        handle.ModelRelay.RenderMode = RenderMode_t.kRenderNone;
-        handle.ModelRelay.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_NONE;
-
-        handle.ModelGlow = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic")!;
-        if (handle.ModelGlow == null)return;
-        handle.ModelGlow.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags &= ~(1u << 2);
-
-        handle.ModelGlow.Render = Color.FromArgb(1, 0, 0, 0);
-        handle.ModelGlow.SetModel(player_model);
-        handle.ModelGlow.DispatchSpawn();
-        if(handle.ModelGlow.Entity != null)handle.ModelGlow.Entity.Name = uniqueName_ModelGlow;
-        handle.ModelGlow.Spawnflags = 256u;
-
-        if(player.TeamNum == (byte)CsTeam.CounterTerrorist)
+        uint pawnHandle = pawn.EntityHandle.Raw;
+        byte team = player!.TeamNum;
+        if (data.PawnHandle == pawnHandle && data.Player_ModelName == model
+            && plugin.IsEspEntityAlive(data.ModelRelay) && plugin.IsEspEntityAlive(data.ModelGlow))
         {
-            handle.ModelGlow.Glow.GlowColorOverride = Configs.Instance.Glow_Color_CT.ToColor();
-        }else if(player.TeamNum == (byte)CsTeam.Terrorist)
-        {
-            handle.ModelGlow.Glow.GlowColorOverride = Configs.Instance.Glow_Color_T.ToColor();
+            if (team != data.GlowTeam)
+            {
+                ApplyGlowColor(data.ModelGlow, team, ctColor, tColor);
+                Utilities.SetStateChanged(data.ModelGlow, "CBaseModelEntity", "m_Glow");
+                data.GlowTeam = team;
+            }
+            return;
         }
-        handle.ModelGlow.Glow.GlowRange = Configs.Instance.GlowRange;
-        handle.ModelGlow.Glow.GlowTeam = -1;
-        handle.ModelGlow.Glow.GlowType = Configs.Instance.GlowType?2:3;
-        handle.ModelGlow.Glow.GlowRangeMin = 100;
 
-        handle.ModelRelay.AcceptInput("FollowEntity", player.PlayerPawn.Value, handle.ModelRelay, "!activator");
-        handle.ModelGlow.AcceptInput("FollowEntity", handle.ModelRelay, handle.ModelGlow, "!activator");
-        handle.Player_ModelName = player_model;
+        RemoveGlowData(data);
+
+        try
+        {
+            data.ModelRelay = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic")!;
+            if (data.ModelRelay == null) return;
+            plugin.TrackEspEntity(data.ModelRelay);
+            data.ModelRelay.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags &= ~(1u << 2);
+            data.ModelRelay.SetModel(model);
+            data.ModelRelay.DispatchSpawn();
+            if (data.ModelRelay.Entity != null) data.ModelRelay.Entity.Name = "MR_" + Guid.NewGuid().ToString("N");
+            data.ModelRelay.Spawnflags = 256u;
+            data.ModelRelay.RenderMode = RenderMode_t.kRenderNone;
+            data.ModelRelay.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_NONE;
+
+            data.ModelGlow = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic")!;
+            if (data.ModelGlow == null)
+            {
+                RemoveGlowData(data);
+                return;
+            }
+            plugin.TrackEspEntity(data.ModelGlow);
+            data.ModelGlow.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags &= ~(1u << 2);
+            data.ModelGlow.Render = Color.FromArgb(1, 0, 0, 0);
+            data.ModelGlow.SetModel(model);
+            data.ModelGlow.DispatchSpawn();
+            if (data.ModelGlow.Entity != null) data.ModelGlow.Entity.Name = "MG_" + Guid.NewGuid().ToString("N");
+            data.ModelGlow.Spawnflags = 256u;
+            ApplyGlowColor(data.ModelGlow, team, ctColor, tColor);
+            data.ModelGlow.Glow.GlowRange = Configs.Instance.GlowRange;
+            data.ModelGlow.Glow.GlowTeam = -1;
+            data.ModelGlow.Glow.GlowType = Configs.Instance.GlowType ? 2 : 3;
+            data.ModelGlow.Glow.GlowRangeMin = 100;
+
+            data.ModelRelay.AcceptInput("FollowEntity", pawn, data.ModelRelay, "!activator");
+            data.ModelGlow.AcceptInput("FollowEntity", data.ModelRelay, data.ModelGlow, "!activator");
+            data.Player_ModelName = model;
+            data.PawnHandle = pawnHandle;
+            data.GlowTeam = team;
+        }
+        catch (Exception ex)
+        {
+            RemoveGlowData(data);
+            DebugMessage($"ESP entity setup failed: {ex.Message}", true);
+        }
+    }
+
+    private static void ApplyGlowColor(CDynamicProp glow, byte team, Color ctColor, Color tColor)
+    {
+        glow.Glow.GlowColorOverride = team switch
+        {
+            (byte)CsTeam.CounterTerrorist => ctColor,
+            (byte)CsTeam.Terrorist => tColor,
+            _ => Color.FromArgb(0)
+        };
     }
 
     public static void StartTimer()
     {
-        var g_Main = MainPlugin.Instance.g_Main;
-        if(g_Main.Timer == null)
-        {
-            g_Main.Timer = MainPlugin.Instance.AddTimer(3.0f, () => ESP_Timer(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
-        }
+        var plugin = MainPlugin.Instance;
+        plugin.g_Main.Timer ??= plugin.CreateEspTimer();
     }
 
-    public static void ESP_Timer()
-    {
-        foreach(var players in GetPlayersController(true))
-        {
-            if(Configs.Instance.DisableOnWarmUp && IsWarmup()) continue;
-            if(players == null || !players.IsValid) continue;
+    private static bool CanReceiveGlow(CCSPlayerController player, byte team, Config.Config config)
+        => (player.IsHLTV ? !config.DisableGlowOnGOTV : !player.IsBot)
+            && (config.Show_ESP_For != 2 || team <= (byte)CsTeam.Spectator);
 
-            CheckPlayerInGlobals(players);
-            
-            SetGlowPlayer(players);
+    internal static void ESP_Timer(IReadOnlyDictionary<int, uint>? spawns = null)
+    {
+        var config = Configs.Instance;
+        if (config.DisableOnWarmUp && IsWarmup()) return;
+
+        var players = Utilities.GetPlayers();
+        Span<int> viewersByTeam = stackalloc int[256];
+        viewersByTeam.Clear();
+        int viewerCount = 0;
+        foreach (var viewer in players)
+        {
+            byte team = viewer.TeamNum;
+            if (!CanReceiveGlow(viewer, team, config)) continue;
+
+            viewersByTeam[team]++;
+            viewerCount++;
+        }
+
+        bool onlyEnemy = MainPlugin.ShowOnlyEnemyTeam(config);
+        var dataBySlot = MainPlugin.Instance.g_Main.Player_Data;
+        var ctColor = config.Glow_Color_CT.ToColor();
+        var tColor = config.Glow_Color_T.ToColor();
+        foreach (var player in players)
+        {
+            if (player.IsHLTV) continue;
+            int slot = player.Slot;
+            if (spawns != null && (!spawns.TryGetValue(slot, out uint handle)
+                || player.EntityHandle.Raw != handle)) continue;
+
+            CheckPlayerInGlobals(player);
+            byte team = player.TeamNum;
+            int excluded = onlyEnemy ? viewersByTeam[team] : CanReceiveGlow(player, team, config) ? 1 : 0;
+            SetGlowPlayer(dataBySlot[slot], viewerCount > excluded, ctColor, tColor);
         }
     }
 
     public static void ReloadPlayersGlobals()
     {
-        foreach (var players in GetPlayersController(true))
+        foreach (var player in Utilities.GetPlayers())
         {
-            if(players == null || !players.IsValid) continue;
-
-            CheckPlayerInGlobals(players);
+            if (!player.IsHLTV) CheckPlayerInGlobals(player);
         }
+        MainPlugin.Instance.ScheduleEspReconcile();
     }
 
     public static void RemoveAllPlayersGlow()
     {
-        foreach (var data in MainPlugin.Instance.g_Main.Player_Data.Values)
-        {
-            var ModelRelay = data.ModelRelay;
-            var ModelGlow = data.ModelGlow;
-
-            if(ModelRelay != null && ModelRelay.IsValid)
-            {
-                ModelRelay.Remove();
-            }
-            if(ModelGlow != null && ModelGlow.IsValid)
-            {
-                ModelGlow.Remove();
-            }
-        }
-        MainPlugin.Instance.g_Main.Player_Data?.Clear();
+        var players = MainPlugin.Instance.g_Main.Player_Data;
+        foreach (var data in players.Values) RemoveGlowData(data);
+        players.Clear();
     }
 
     public static void RegisterCommandsAndHooks()
     {
+        if (!MainPlugin.Instance.StartEspHooks()) return;
+        MainPlugin.Instance.RegisterListener<Listeners.OnEntityDeleted>(MainPlugin.Instance.OnEspEntityDeleted);
         MainPlugin.Instance.RegisterListener<Listeners.OnMapStart>(MainPlugin.Instance.OnMapStart);
         MainPlugin.Instance.RegisterListener<Listeners.OnClientPutInServer>(MainPlugin.Instance.OnClientPutInServer);
         MainPlugin.Instance.RegisterListener<Listeners.CheckTransmit>(MainPlugin.Instance.OnCheckTransmit);
@@ -482,7 +531,10 @@ public class Helper
 
         MainPlugin.Instance.RegisterEventHandler<EventRoundStart>(MainPlugin.Instance.OnEventRoundStart);
         MainPlugin.Instance.RegisterEventHandler<EventPlayerDeath>(MainPlugin.Instance.OnEventPlayerDeath);
-        MainPlugin.Instance.RegisterEventHandler<EventPlayerDisconnect>(MainPlugin.Instance.OnEventPlayerDisconnect);
+        MainPlugin.Instance.RegisterListener<Listeners.OnClientDisconnect>(MainPlugin.Instance.OnEspClientDisconnect);
+        MainPlugin.Instance.RegisterEventHandler<EventPlayerSpawn>(MainPlugin.Instance.OnEspSpawn);
+        MainPlugin.Instance.RegisterEventHandler<EventPlayerTeam>(MainPlugin.Instance.OnEspTeam);
+        MainPlugin.Instance.RegisterEventHandler<EventBotTakeover>(MainPlugin.Instance.OnEspBotTakeover);
 
         MainPlugin.Instance.AddCommandListener("say", MainPlugin.Instance.OnPlayerSay, HookMode.Post);
         MainPlugin.Instance.AddCommandListener("say_team", MainPlugin.Instance.OnPlayerSay_Team, HookMode.Post);
@@ -497,6 +549,8 @@ public class Helper
 
     public static void RemoveRegisterCommandsAndHooks()
     {
+        if (!MainPlugin.Instance.StopEspHooks()) return;
+        MainPlugin.Instance.RemoveListener<Listeners.OnEntityDeleted>(MainPlugin.Instance.OnEspEntityDeleted);
         MainPlugin.Instance.RemoveListener<Listeners.OnMapStart>(MainPlugin.Instance.OnMapStart);
         MainPlugin.Instance.RemoveListener<Listeners.OnClientPutInServer>(MainPlugin.Instance.OnClientPutInServer);
         MainPlugin.Instance.RemoveListener<Listeners.CheckTransmit>(MainPlugin.Instance.OnCheckTransmit);
@@ -504,7 +558,10 @@ public class Helper
 
         MainPlugin.Instance.DeregisterEventHandler<EventRoundStart>(MainPlugin.Instance.OnEventRoundStart);
         MainPlugin.Instance.DeregisterEventHandler<EventPlayerDeath>(MainPlugin.Instance.OnEventPlayerDeath);
-        MainPlugin.Instance.DeregisterEventHandler<EventPlayerDisconnect>(MainPlugin.Instance.OnEventPlayerDisconnect);
+        MainPlugin.Instance.RemoveListener<Listeners.OnClientDisconnect>(MainPlugin.Instance.OnEspClientDisconnect);
+        MainPlugin.Instance.DeregisterEventHandler<EventPlayerSpawn>(MainPlugin.Instance.OnEspSpawn);
+        MainPlugin.Instance.DeregisterEventHandler<EventPlayerTeam>(MainPlugin.Instance.OnEspTeam);
+        MainPlugin.Instance.DeregisterEventHandler<EventBotTakeover>(MainPlugin.Instance.OnEspBotTakeover);
 
         MainPlugin.Instance.RemoveCommandListener("say", MainPlugin.Instance.OnPlayerSay, HookMode.Post);
         MainPlugin.Instance.RemoveCommandListener("say_team", MainPlugin.Instance.OnPlayerSay_Team, HookMode.Post);
