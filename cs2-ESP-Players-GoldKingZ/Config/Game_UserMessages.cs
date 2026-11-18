@@ -92,14 +92,7 @@ public class Game_UserMessages
         {
             if (onetime)
             {
-                Server.NextFrame(() =>
-                {
-                    Helper.RemoveRegisterCommandsAndHooks();
-                    Helper.ClearVariables();
-                    Configs.Load(MainPlugin.Instance.ModuleDirectory, true);
-                    Helper.RegisterCommandsAndHooks();
-                    Helper.ReloadPlayersGlobals();
-                });
+                MainPlugin.Instance.ScheduleConfigReload();
 
                 Helper.AdvancedPlayerPrintToChat(player, commandInfo, MainPlugin.Instance.Localizer["PrintToChatToPlayer.ReloadPlugin.Successfully"]);
             }

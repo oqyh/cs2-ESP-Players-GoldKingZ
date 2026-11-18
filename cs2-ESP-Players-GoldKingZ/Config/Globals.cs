@@ -15,10 +15,14 @@ public class Globals
         public CDynamicProp ModelRelay { get; set; }
         public CDynamicProp ModelGlow { get; set; }
         public DateTime EventPlayerChat { get; set; }
+        public uint ControllerHandle { get; set; }
+        public uint PawnHandle { get; set; }
+        public byte GlowTeam { get; set; }
 
         public PlayerDataClass(CCSPlayerController Playerr, string Player_ModelNamee, bool Gived_ESPP, CDynamicProp ModelRelayy, CDynamicProp ModelGloww, DateTime EventPlayerChatt)
         {
             Player = Playerr;
+            ControllerHandle = Playerr.EntityHandle.Raw;
             Player_ModelName = Player_ModelNamee;
             Gived_ESP = Gived_ESPP;
             ModelRelay = ModelRelayy;
